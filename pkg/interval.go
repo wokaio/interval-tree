@@ -1,4 +1,4 @@
-package main
+package interval
 
 import (
 	"encoding/csv"
@@ -79,7 +79,6 @@ func (root *IntervalNode) PrintIntervalNode() {
 	root.right.PrintIntervalNode()
 }
 
-
 func (root *IntervalNode) BuildIntervalTree(intervals []Interval) *IntervalNode {
 	intervals_len := len(intervals)
 	balance_index := int(intervals_len / 2)
@@ -139,20 +138,4 @@ func CreateIntervalsFromCsvFile(path string) []Interval {
 	}
 
 	return intervals
-}
-
-func main() {
-	intervals := CreateIntervalsFromCsvFile("./data/dhl.csv")
-	intervals = intervals[:6]
-	var root *IntervalNode
-	root = root.BuildIntervalTree(intervals)
-
-	interval_search := Interval{2, 2, 0}
-	result := root.overlapSearch(&interval_search)
-
-	if result == nil {
-		fmt.Println("\nNo overlapping interval")
-	} else {
-		fmt.Printf("\nOverlaps with low %v, high %v, data %v", result.low, result.high, result.data)
-	}
 }
