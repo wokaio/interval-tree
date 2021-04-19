@@ -10,9 +10,9 @@ import (
 )
 
 type Interval struct {
-	low  float64
-	high float64
-	data float64
+	Low  float64
+	High float64
+	Data float64
 }
 
 type IntervalNode struct {
@@ -25,7 +25,7 @@ type IntervalNode struct {
 func NewIntervalNode(interval *Interval) *IntervalNode {
 	return &IntervalNode{
 		interval: interval,
-		max:      interval.high,
+		max:      interval.High,
 		left:     nil,
 		right:    nil,
 	}
@@ -36,24 +36,24 @@ func (root *IntervalNode) Insert(interval Interval) *IntervalNode {
 		return NewIntervalNode(&interval)
 	}
 
-	if interval.low < root.interval.low {
+	if interval.Low < root.interval.Low {
 		root.left = root.left.Insert(interval)
 	} else {
 		root.right = root.right.Insert(interval)
 	}
 
-	if root.max < interval.high {
-		root.max = interval.high
+	if root.max < interval.High {
+		root.max = interval.High
 	}
 
 	return root
 }
 
 func doOverlap(interval1 *Interval, interval2 *Interval) bool {
-	return interval1.low <= interval2.high && interval2.low <= interval1.high
+	return interval1.Low <= interval2.High && interval2.Low <= interval1.High
 }
 
-func (root *IntervalNode) overlapSearch(interval *Interval) *Interval {
+func (root *IntervalNode) OverlapSearch(interval *Interval) *Interval {
 	if root == nil {
 		return nil
 	}
@@ -62,11 +62,11 @@ func (root *IntervalNode) overlapSearch(interval *Interval) *Interval {
 		return root.interval
 	}
 
-	if root.left != nil && root.left.max >= interval.low {
-		return root.left.overlapSearch(interval)
+	if root.left != nil && root.left.max >= interval.Low {
+		return root.left.OverlapSearch(interval)
 	}
 
-	return root.right.overlapSearch(interval)
+	return root.right.OverlapSearch(interval)
 }
 
 func (root *IntervalNode) PrintIntervalNode() {
@@ -75,7 +75,7 @@ func (root *IntervalNode) PrintIntervalNode() {
 	}
 
 	root.left.PrintIntervalNode()
-	fmt.Printf("\n{low: %v, high: %v}, max: %v", root.interval.low, root.interval.high, root.max)
+	fmt.Printf("\n{Low: %v, High: %v}, max: %v", root.interval.Low, root.interval.High, root.max)
 	root.right.PrintIntervalNode()
 }
 
@@ -108,7 +108,7 @@ func CreateIntervalsFromCsvFile(path string) []Interval {
 
 	read_file := csv.NewReader(file)
 	var intervals []Interval
-	var low, high, data float64
+	var Low, High, Data float64
 
 	for {
 
@@ -119,19 +119,19 @@ func CreateIntervalsFromCsvFile(path string) []Interval {
 
 		for key, value := range record {
 			if key == 0 { 
-				low, err = strconv.ParseFloat(value, 64)
-				high = low + 1
+				Low, err = strconv.ParseFloat(value, 64)
+				High = Low + 1
 			}
 
 			if key == 1 {
-				data, err = strconv.ParseFloat(value, 64)
+				Data, err = strconv.ParseFloat(value, 64)
 			}
 		}
 
 		interval := Interval{
-			low:  low,
-			high: high,
-			data: data,
+			Low:  Low,
+			High: High,
+			Data: Data,
 		}
 
 		intervals = append(intervals, interval)

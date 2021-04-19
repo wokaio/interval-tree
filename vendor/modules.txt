@@ -1,0 +1,1 @@
+# github.com/miczone/interval-tree/pkg => ../pkg
