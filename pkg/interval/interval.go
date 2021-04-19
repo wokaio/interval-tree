@@ -53,20 +53,21 @@ func doOverlap(interval1 *Interval, interval2 *Interval) bool {
 	return interval1.Low <= interval2.High && interval2.Low <= interval1.High
 }
 
-func (root *IntervalNode) OverlapSearch(interval *Interval) *Interval {
+func (root *IntervalNode) OverlapSearch(interval *Interval, intervals *[]Interval) {
 	if root == nil {
-		return nil
+		return 
 	}
 
 	if doOverlap(root.interval, interval) {
-		return root.interval
+		*intervals = append(*intervals, *root.interval)
 	}
 
 	if root.left != nil && root.left.max >= interval.Low {
-		return root.left.OverlapSearch(interval)
+		root.left.OverlapSearch(interval, intervals)
+		return 
 	}
 
-	return root.right.OverlapSearch(interval)
+	root.right.OverlapSearch(interval, intervals)
 }
 
 func (root *IntervalNode) PrintIntervalNode() {
@@ -79,7 +80,7 @@ func (root *IntervalNode) PrintIntervalNode() {
 	root.right.PrintIntervalNode()
 }
 
-func (root *IntervalNode) BuildIntervalTree(intervals []Interval) *IntervalNode {
+func BuildIntervalTree(intervals []Interval) (root *IntervalNode) {
 	intervals_len := len(intervals)
 	balance_index := int(intervals_len / 2)
 

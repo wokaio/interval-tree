@@ -8,16 +8,18 @@ import (
 func main() {
 	intervals := interval.CreateIntervalsFromCsvFile("./data/dhl.csv")
 	intervals = intervals[:6]
-	var root *interval.IntervalNode
-	root = root.BuildIntervalTree(intervals)
-	root.PrintIntervalNode()
+	tree := interval.BuildIntervalTree(intervals)
+	tree.PrintIntervalNode()
 
 	interval_search := interval.Interval{Low:2, High: 2, Data: 0}
-	result := root.OverlapSearch(&interval_search)
+	var result []interval.Interval
+	tree.OverlapSearch(&interval_search, &result)
 
-	if result == nil {
-		fmt.Println("\nNo overlapping interval")
-	} else {
-		fmt.Printf("\nOverlaps with low %v, high %v, data %v", result.Low, result.High, result.Data)
+	for _,value := range result {
+		if result == nil {
+			fmt.Println("\nNo overlapping interval")
+		} else {
+			fmt.Printf("\nOverlaps with low %v, high %v, data %v", value.Low, value.High, value.Data)
+		}
 	}
 }
