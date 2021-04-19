@@ -12,7 +12,7 @@ func main() {
 	root = root.BuildIntervalTree(intervals)
 	root.PrintIntervalNode()
 
-	interval_search := interval.Interval{2, 2, 0}
+	interval_search := interval.Interval{Low:2, High: 2, Data: 0}
 	result := root.OverlapSearch(&interval_search)
 
 	if result == nil {

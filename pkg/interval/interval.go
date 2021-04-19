@@ -108,7 +108,7 @@ func CreateIntervalsFromCsvFile(path string) []Interval {
 
 	read_file := csv.NewReader(file)
 	var intervals []Interval
-	var Low, High, Data float64
+	var low, high, data float64
 
 	for {
 
@@ -119,19 +119,19 @@ func CreateIntervalsFromCsvFile(path string) []Interval {
 
 		for key, value := range record {
 			if key == 0 { 
-				Low, err = strconv.ParseFloat(value, 64)
-				High = Low + 1
+				low, err = strconv.ParseFloat(value, 64)
+				high = low + 1
 			}
 
 			if key == 1 {
-				Data, err = strconv.ParseFloat(value, 64)
+				data, err = strconv.ParseFloat(value, 64)
 			}
 		}
 
 		interval := Interval{
-			Low:  Low,
-			High: High,
-			Data: Data,
+			Low:  low,
+			High: high,
+			Data: data,
 		}
 
 		intervals = append(intervals, interval)
