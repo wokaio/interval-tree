@@ -80,11 +80,9 @@ func (root *IntervalNode) PrintIntervalNode() {
 }
 
 
-func BuildIntervalTree(intervals []Interval) *IntervalNode {
+func (root *IntervalNode) BuildIntervalTree(intervals []Interval) *IntervalNode {
 	intervals_len := len(intervals)
 	balance_index := int(intervals_len / 2)
-
-	var root *IntervalNode
 
 	for i := 0; i < intervals_len; i++ {
 		if i%2 == 0 {
@@ -145,10 +143,11 @@ func CreateIntervalsFromCsvFile(path string) []Interval {
 
 func main() {
 	intervals := CreateIntervalsFromCsvFile("./data/dhl.csv")
-	root := BuildIntervalTree(intervals)
+	intervals = intervals[:6]
+	var root *IntervalNode
+	root = root.BuildIntervalTree(intervals)
 
-	interval_search := Interval{2.5, 2.5, 0}
-
+	interval_search := Interval{2, 2, 0}
 	result := root.overlapSearch(&interval_search)
 
 	if result == nil {
