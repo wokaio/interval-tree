@@ -9,25 +9,30 @@ import (
 	"strconv"
 )
 
+type StandardDeviation struct {
+	zone  string
+	value float64
+}
+
 type Interval struct {
-	low float64
+	low  float64
 	high float64
 	data float64
 }
 
 type IntervalNode struct {
 	interval *Interval
-	max float64
-	left *IntervalNode
-	right *IntervalNode
+	max      float64
+	left     *IntervalNode
+	right    *IntervalNode
 }
 
 func NewIntervalNode(interval *Interval) *IntervalNode {
 	return &IntervalNode{
 		interval: interval,
-		max: interval.high,
-		left: nil,
-		right: nil,
+		max:      interval.high,
+		left:     nil,
+		right:    nil,
 	}
 }
 
@@ -80,7 +85,7 @@ func (root *IntervalNode) PrintIntervalNode() {
 }
 
 func main() {
-	file, err := os.Open("./dhl.csv")
+	file, err := os.Open("./data/dhl.csv")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -90,13 +95,14 @@ func main() {
 	var low, high, data float64
 
 	for {
-        record, err := read_file.Read()
-        if err == io.EOF {
-            break
-        }
 
-        for key, value := range record {
-			if key == 0 {
+		record, err := read_file.Read()
+		if err == io.EOF {
+			break
+		}
+
+		for key, value := range record {
+			if key == 0 { // range
 				low, err = strconv.ParseFloat(value, 64)
 				high = low + 1
 			}
@@ -105,9 +111,9 @@ func main() {
 				data, err = strconv.ParseFloat(value, 64)
 			}
 		}
-		
+
 		interval := Interval{
-			low: low,
+			low:  low,
 			high: high,
 			data: data,
 		}
@@ -115,32 +121,28 @@ func main() {
 		intervals = append(intervals, interval)
 	}
 
-	intervals = intervals[:6]
+	intervals_len := len(intervals)
+	index_insert := int(intervals_len / 2)
 
-	lenOfIntervals := len(intervals)
-	midIndex := int(lenOfIntervals/2)
 	var root *IntervalNode
-	tmp := ""
-	for i := 0; i < lenOfIntervals; i++ {
+
+	for i := 0; i < intervals_len; i++ {
 		if i%2 == 0 {
-			midIndex -= i
-			root = root.Insert(intervals[midIndex])
+			index_insert -= i
 		} else {
-			midIndex +=i
-			root = root.Insert(intervals[midIndex])
+			index_insert += i
 		}
 
-		tmp += strconv.Itoa(midIndex) + ","
+		if index_insert == intervals_len {
+			index_insert = 0
+		}
+
+		root = root.Insert(intervals[index_insert])
 	}
-
-	println("tmp:",tmp)
-
-
-	// root.PrintIntervalNode()
 
 	interval_search := Interval{2.5, 2.5, 0}
 
-	result := root.overlapSearch(&interval_search);
+	result := root.overlapSearch(&interval_search)
 
 	if result == nil {
 		fmt.Println("\nNo overlapping interval")
