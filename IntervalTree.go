@@ -9,11 +9,6 @@ import (
 	"strconv"
 )
 
-type StandardDeviation struct {
-	zone  string
-	value float64
-}
-
 type Interval struct {
 	low  float64
 	high float64
@@ -84,8 +79,32 @@ func (root *IntervalNode) PrintIntervalNode() {
 	root.right.PrintIntervalNode()
 }
 
-func main() {
-	file, err := os.Open("./data/dhl.csv")
+
+func BuildIntervalTree(intervals []Interval) *IntervalNode {
+	intervals_len := len(intervals)
+	balance_index := int(intervals_len / 2)
+
+	var root *IntervalNode
+
+	for i := 0; i < intervals_len; i++ {
+		if i%2 == 0 {
+			balance_index -= i
+		} else {
+			balance_index += i
+		}
+
+		if balance_index == intervals_len {
+			balance_index = 0
+		}
+
+		root = root.Insert(intervals[balance_index])
+	}
+
+	return root
+}
+
+func CreateIntervalsFromCsvFile(path string) []Interval {
+	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -102,7 +121,7 @@ func main() {
 		}
 
 		for key, value := range record {
-			if key == 0 { // range
+			if key == 0 { 
 				low, err = strconv.ParseFloat(value, 64)
 				high = low + 1
 			}
@@ -121,24 +140,12 @@ func main() {
 		intervals = append(intervals, interval)
 	}
 
-	intervals_len := len(intervals)
-	index_insert := int(intervals_len / 2)
+	return intervals
+}
 
-	var root *IntervalNode
-
-	for i := 0; i < intervals_len; i++ {
-		if i%2 == 0 {
-			index_insert -= i
-		} else {
-			index_insert += i
-		}
-
-		if index_insert == intervals_len {
-			index_insert = 0
-		}
-
-		root = root.Insert(intervals[index_insert])
-	}
+func main() {
+	intervals := CreateIntervalsFromCsvFile("./data/dhl.csv")
+	root := BuildIntervalTree(intervals)
 
 	interval_search := Interval{2.5, 2.5, 0}
 
