@@ -9,7 +9,7 @@ func main() {
 	intervals := interval.CreateIntervalsFromCsvFile("./data/dhl.csv")
 	tree := interval.BuildIntervalTree(intervals)
 	// tree.PrintIntervalNode()
-	result := tree.DeliveryCalculator(2.00, "Zone D")
+	result := tree.DeliveryCalculator(2.12, "Zone D")
 
 	if result == nil {
 		fmt.Println("\nNo overlapping interval")

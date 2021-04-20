@@ -107,6 +107,7 @@ func (root *IntervalNode) DeliveryCalculator(weight float64, zone string) *Inter
 
 		if value.DeliveryData.Zone == zone {
 			intervals_result_with_zone = append(intervals_result_with_zone, value)
+			fmt.Printf("\nOverlaps with low %v, high %v, DeliveryData %v", value.Low, value.High, value.DeliveryData)
 		}
 	}
 
@@ -139,7 +140,8 @@ func CreateIntervalsFromCsvFile(path string) ([]Interval) {
 		log.Fatal(err)
 	}
 
-	var escalone = 0.0005
+	var step = 0.0005
+	// var step = 0.00
 	var distance = 1.0
 	var skip_row_title = true
 	var column_title = "LB,Zone A,Zone B,Zone C,Zone D,Zone E,Zone F,Zone G,Zone H,Zone I,Zone J,Zone K,Zone L,Zone M,Zone N"
@@ -164,9 +166,9 @@ func CreateIntervalsFromCsvFile(path string) ([]Interval) {
 
 		for key, value := range record {
 			if (key == 0) {
-				low, err = strconv.ParseFloat(value, 64)
-				low = low + escalone
-				high = low + distance 
+				high, err = strconv.ParseFloat(value, 64)
+				high = high + step
+				low = high - distance 
 			} else {
 				price, err = strconv.ParseFloat(value, 64)
 				zone = map_column_title[key]
