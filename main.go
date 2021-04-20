@@ -16,7 +16,17 @@ func main() {
 	tree := fdinterval.BuildIntervalTree(intervals)
 	// tree.PrintIntervalNode()
 
-	result, err := tree.DeliveryCalculatorByZone(2.3, "Zone D")
+	var countryIsoCode string = "us"
+	intervalPool := fdinterval.NewIntervalPool()
+	intervalPool.SetIntervalPtr(countryIsoCode, tree)
+
+	treeItem, err := intervalPool.GetIntervalPtr(countryIsoCode)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	result, err := treeItem.DeliveryCalculatorByZone(2.3, "Zone D")
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -24,7 +34,7 @@ func main() {
 	fmt.Println("\nDeliveryCalculatorByZone")
 	fmt.Printf("Low %v, high %v, data %v", result.Low, result.High, result.DeliveryData)
 
-	results, err := tree.DeliveryCalculator(2.3)
+	results, err := treeItem.DeliveryCalculator(2.3)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
