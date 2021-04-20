@@ -1,17 +1,11 @@
 # interval-tree
 Interval tree
 
----
-
 ## Installation
 
 ```bash
 go get -u github.com/miczone/interval-tree
 ```
-
----
-
----
 
 ## Example (Optional)
 
@@ -56,5 +50,3 @@ func main() {
 	}
 }
 ```
-
----
