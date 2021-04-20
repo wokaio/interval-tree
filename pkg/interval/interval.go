@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -168,7 +169,10 @@ func CreateIntervalsFromCsvFile(path string) []Interval {
 			if key == 0 {
 				high, err = strconv.ParseFloat(value, 64)
 				high = high + step
+				high = math.Floor(high*10000)/10000
+
 				low = high - distance
+				low = math.Floor(low*10000)/10000
 			} else {
 				price, err = strconv.ParseFloat(value, 64)
 				zone = map_column_title[key]
