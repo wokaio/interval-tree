@@ -13,7 +13,7 @@ import (
 type Interval struct {
 	Low  float64
 	High float64
-	Data interface {}
+	DeliveryData Delivery
 }
 
 type Delivery struct {
@@ -70,7 +70,6 @@ func (root *IntervalNode) OverlapSearch(interval *Interval, intervals *[]Interva
 
 	if root.left != nil && root.left.max >= interval.Low {
 		root.left.OverlapSearch(interval, intervals)
-		return 
 	}
 
 	root.right.OverlapSearch(interval, intervals)
@@ -82,7 +81,7 @@ func (root *IntervalNode) PrintIntervalNode() {
 	}
 
 	root.left.PrintIntervalNode()
-	fmt.Printf("\n{Low: %v, High: %v}, max: %v", root.interval.Low, root.interval.High, root.max)
+	fmt.Printf("\n{Low: %v, High: %v, DeliveryData: %v}, max: %v", root.interval.Low, root.interval.High, root.interval.DeliveryData, root.max)
 	root.right.PrintIntervalNode()
 }
 
@@ -107,6 +106,24 @@ func BuildIntervalTree(intervals []Interval) (root *IntervalNode) {
 	return root
 }
 
+func (root *IntervalNode) DeliveryCalculator(weight float64, zone string) *Interval {
+	interval_search := Interval{Low: weight, High: weight, DeliveryData: Delivery{}}
+	var intervals_result []Interval
+
+	root.OverlapSearch(&interval_search, &intervals_result)
+	
+	for _,value := range intervals_result {
+		fmt.Printf("\nOverlaps with low %v, high %v, DeliveryData %v", value.Low, value.High, value.DeliveryData)
+
+		if value.DeliveryData.Zone == zone {
+			return &value
+
+		}
+	}
+
+	return nil
+}
+
 func CreateIntervalsFromCsvFile(path string) ([]Interval) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -119,7 +136,7 @@ func CreateIntervalsFromCsvFile(path string) ([]Interval) {
 	read_file := csv.NewReader(file)
 	var intervals []Interval
 	var low, high, price float64
-	var data interface {}
+	var DeliveryData Delivery
 	var zone string
 	var row_number = 1
 
@@ -142,7 +159,7 @@ func CreateIntervalsFromCsvFile(path string) ([]Interval) {
 				price, err = strconv.ParseFloat(value, 64)
 				zone = map_column_zone[key]
 
-				data = Delivery{
+				DeliveryData = Delivery{
 					Zone: zone,
 					Price: price,
 				}
@@ -150,7 +167,7 @@ func CreateIntervalsFromCsvFile(path string) ([]Interval) {
 				interval := Interval{
 					Low:  low,
 					High: high,
-					Data: data,
+					DeliveryData: DeliveryData,
 				}
 		
 				intervals = append(intervals, interval)
