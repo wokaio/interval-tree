@@ -11,13 +11,13 @@ import (
 )
 
 type Interval struct {
-	Low  float64
-	High float64
+	Low          float64
+	High         float64
 	DeliveryData Delivery
 }
 
 type Delivery struct {
-	Zone string
+	Zone  string
 	Price float64
 }
 
@@ -61,14 +61,14 @@ func doOverlap(interval1 *Interval, interval2 *Interval) bool {
 
 func (root *IntervalNode) OverlapSearch(interval *Interval, intervals *[]Interval) {
 	if root == nil {
-		return 
+		return
 	}
 
 	if doOverlap(root.interval, interval) {
 		*intervals = append(*intervals, *root.interval)
 	}
 
-	if root.left != nil && interval.Low <= root.left.max{
+	if root.left != nil && interval.Low <= root.left.max {
 		root.left.OverlapSearch(interval, intervals)
 		return
 	}
@@ -101,13 +101,13 @@ func (root *IntervalNode) DeliveryCalculator(weight float64, zone string) *Inter
 	var intervals_result, intervals_result_with_zone []Interval
 
 	root.OverlapSearch(&interval_search, &intervals_result)
-	
-	for _,value := range intervals_result {
+
+	for _, value := range intervals_result {
 		// fmt.Printf("\nOverlaps with low %v, high %v, DeliveryData %v", value.Low, value.High, value.DeliveryData)
 
 		if value.DeliveryData.Zone == zone {
+			// fmt.Printf("\nOverlaps with low %v, high %v, DeliveryData %v", value.Low, value.High, value.DeliveryData)
 			intervals_result_with_zone = append(intervals_result_with_zone, value)
-			fmt.Printf("\nOverlaps with low %v, high %v, DeliveryData %v", value.Low, value.High, value.DeliveryData)
 		}
 	}
 
@@ -117,7 +117,7 @@ func (root *IntervalNode) DeliveryCalculator(weight float64, zone string) *Inter
 		return nil
 	}
 
-	if (result_len == 1) {
+	if result_len == 1 {
 		return &intervals_result_with_zone[0]
 	}
 
@@ -125,7 +125,7 @@ func (root *IntervalNode) DeliveryCalculator(weight float64, zone string) *Inter
 	min_price_index := 0
 
 	for key, value := range intervals_result_with_zone {
-		if (min_price > value.DeliveryData.Price) {
+		if min_price > value.DeliveryData.Price {
 			min_price = value.DeliveryData.Price
 			min_price_index = key
 		}
@@ -134,7 +134,7 @@ func (root *IntervalNode) DeliveryCalculator(weight float64, zone string) *Inter
 	return &intervals_result_with_zone[min_price_index]
 }
 
-func CreateIntervalsFromCsvFile(path string) ([]Interval) {
+func CreateIntervalsFromCsvFile(path string) []Interval {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -161,29 +161,29 @@ func CreateIntervalsFromCsvFile(path string) ([]Interval) {
 
 		if skip_row_title == true {
 			skip_row_title = false
-			continue;
+			continue
 		}
 
 		for key, value := range record {
-			if (key == 0) {
+			if key == 0 {
 				high, err = strconv.ParseFloat(value, 64)
 				high = high + step
-				low = high - distance 
+				low = high - distance
 			} else {
 				price, err = strconv.ParseFloat(value, 64)
 				zone = map_column_title[key]
 
 				DeliveryData = Delivery{
-					Zone: zone,
+					Zone:  zone,
 					Price: price,
 				}
-		
+
 				interval := Interval{
-					Low:  low,
-					High: high,
+					Low:          low,
+					High:         high,
 					DeliveryData: DeliveryData,
 				}
-		
+
 				intervals = append(intervals, interval)
 			}
 		}
