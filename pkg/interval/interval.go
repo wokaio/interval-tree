@@ -7,12 +7,18 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Interval struct {
 	Low  float64
 	High float64
-	Data float64
+	Data interface {}
+}
+
+type Delivery struct {
+	Zone string
+	Price float64
 }
 
 type IntervalNode struct {
@@ -101,41 +107,55 @@ func BuildIntervalTree(intervals []Interval) (root *IntervalNode) {
 	return root
 }
 
-func CreateIntervalsFromCsvFile(path string) []Interval {
+func CreateIntervalsFromCsvFile(path string) ([]Interval) {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	var str_zone = "LB,Zone A,Zone B,Zone C,Zone D,Zone E,Zone F,Zone G,Zone H,Zone I,Zone J,Zone K,Zone L,Zone M,Zone N"
+	var map_column_zone = strings.Split(str_zone, ",")
+
 	read_file := csv.NewReader(file)
 	var intervals []Interval
-	var low, high, data float64
+	var low, high, price float64
+	var data interface {}
+	var zone string
+	var row_number = 1
 
 	for {
-
 		record, err := read_file.Read()
 		if err == io.EOF {
 			break
 		}
 
+		if row_number == 1 {
+			row_number ++
+			continue;
+		}
+
 		for key, value := range record {
-			if key == 0 { 
+			if (key == 0) {
 				low, err = strconv.ParseFloat(value, 64)
 				high = low + 1
-			}
+			} else {
+				price, err = strconv.ParseFloat(value, 64)
+				zone = map_column_zone[key]
 
-			if key == 1 {
-				data, err = strconv.ParseFloat(value, 64)
+				data = Delivery{
+					Zone: zone,
+					Price: price,
+				}
+		
+				interval := Interval{
+					Low:  low,
+					High: high,
+					Data: data,
+				}
+		
+				intervals = append(intervals, interval)
 			}
 		}
-
-		interval := Interval{
-			Low:  low,
-			High: high,
-			Data: data,
-		}
-
-		intervals = append(intervals, interval)
 	}
 
 	return intervals

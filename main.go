@@ -7,7 +7,7 @@ import (
 
 func main() {
 	intervals := interval.CreateIntervalsFromCsvFile("./data/dhl.csv")
-	intervals = intervals[:6]
+	// intervals = intervals[:6]
 	tree := interval.BuildIntervalTree(intervals)
 	tree.PrintIntervalNode()
 
