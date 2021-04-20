@@ -6,8 +6,6 @@ Interval tree
 ## Installation
 
 ```bash
-// code away!
-
 go get -u github.com/miczone/interval-tree
 ```
 
@@ -18,8 +16,6 @@ go get -u github.com/miczone/interval-tree
 ## Example (Optional)
 
 ```golang
-// code away!
-
 func main() {
 	intervals, err := fdinterval.CreateIntervalsFromCsvFile("./data/dhl.csv", 0.0005)
 	if err != nil {
