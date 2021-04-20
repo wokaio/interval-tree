@@ -1,20 +1,40 @@
-package interval
+package fdinterval
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"os"
+	"reflect"
+	"sort"
 	"strconv"
-	"strings"
+)
+
+var (
+	floatType  = reflect.TypeOf(float64(0))
+	stringType = reflect.TypeOf("")
 )
 
 type Interval struct {
 	Low          float64
 	High         float64
 	DeliveryData Delivery
+}
+
+type IntervalList []Interval
+
+func (item_list IntervalList) Len() int {
+	return len(item_list)
+}
+
+func (item_list IntervalList) Less(i, j int) bool {
+	return item_list[i].DeliveryData.Price > item_list[j].DeliveryData.Price
+}
+
+func (item_list IntervalList) Swap(i, j int) {
+	item_list[i], item_list[j] = item_list[j], item_list[i]
 }
 
 type Delivery struct {
@@ -97,60 +117,117 @@ func BuildIntervalTree(intervals []Interval) (root *IntervalNode) {
 	return root
 }
 
-func (root *IntervalNode) DeliveryCalculator(weight float64, zone string) *Interval {
-	interval_search := Interval{Low: weight, High: weight, DeliveryData: Delivery{}}
+func ConvertI2Float(number interface{}) (float64, error) {
+	switch i := number.(type) {
+	case float64:
+		return i, nil
+	case float32:
+		return float64(i), nil
+	case int64:
+		return float64(i), nil
+	case int32:
+		return float64(i), nil
+	case int:
+		return float64(i), nil
+	case uint64:
+		return float64(i), nil
+	case uint32:
+		return float64(i), nil
+	case uint:
+		return float64(i), nil
+	case string:
+		return strconv.ParseFloat(i, 64)
+	default:
+		v := reflect.ValueOf(number)
+		v = reflect.Indirect(v)
+		if v.Type().ConvertibleTo(floatType) {
+			fv := v.Convert(floatType)
+			return fv.Float(), nil
+		} else if v.Type().ConvertibleTo(stringType) {
+			sv := v.Convert(stringType)
+			s := sv.String()
+			return strconv.ParseFloat(s, 64)
+		} else {
+			return math.NaN(), fmt.Errorf("Error to convert %v to float64", v.Type())
+		}
+	}
+}
+
+func (root *IntervalNode) DeliveryCalculatorByZone(weight interface{}, zone string) (*Interval, error) {
+	weightf, err := ConvertI2Float(weight)
+	if err != nil {
+		return nil, err
+	}
+
+	interval_search := Interval{Low: weightf, High: weightf, DeliveryData: Delivery{}}
 	var intervals_result, intervals_result_with_zone []Interval
 
 	root.OverlapSearch(&interval_search, &intervals_result)
-
 	for _, value := range intervals_result {
-		// fmt.Printf("\nOverlaps with low %v, high %v, DeliveryData %v", value.Low, value.High, value.DeliveryData)
-
 		if value.DeliveryData.Zone == zone {
-			// fmt.Printf("\nOverlaps with low %v, high %v, DeliveryData %v", value.Low, value.High, value.DeliveryData)
 			intervals_result_with_zone = append(intervals_result_with_zone, value)
 		}
 	}
 
 	result_len := len(intervals_result_with_zone)
-
 	if result_len == 0 {
-		return nil
+		return nil, errors.New("No overlapping interval")
 	}
 
 	if result_len == 1 {
-		return &intervals_result_with_zone[0]
+		return &intervals_result_with_zone[0], nil
 	}
 
-	min_price := intervals_result_with_zone[0].DeliveryData.Price
-	min_price_index := 0
-
-	for key, value := range intervals_result_with_zone {
-		if min_price > value.DeliveryData.Price {
-			min_price = value.DeliveryData.Price
-			min_price_index = key
-		}
-	}
-
-	return &intervals_result_with_zone[min_price_index]
+	sort.Sort(IntervalList(intervals_result_with_zone))
+	return &intervals_result_with_zone[0], nil
 }
 
-func CreateIntervalsFromCsvFile(path string) []Interval {
-	file, err := os.Open(path)
+func (root *IntervalNode) DeliveryCalculator(weight interface{}) ([]Interval, error) {
+	weightf, err := ConvertI2Float(weight)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	var step = 0.0005
-	// var step = 0.00
+	interval_search := Interval{Low: weightf, High: weightf, DeliveryData: Delivery{}}
+	var intervals_result, intervals_result_with_zone []Interval
+
+	root.OverlapSearch(&interval_search, &intervals_result)
+	for _, value := range intervals_result {
+		intervals_result_with_zone = append(intervals_result_with_zone, value)
+	}
+
+	result_len := len(intervals_result_with_zone)
+	if result_len == 0 {
+		return nil, errors.New("No overlapping interval")
+	}
+
+	if result_len > 0 {
+		sort.Sort(IntervalList(intervals_result_with_zone))
+	}
+
+	return intervals_result_with_zone, nil
+}
+
+func CreateIntervalsFromCsvFile(path string, step float64) ([]Interval, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
 	var distance = 1.0
 	var skip_row_title = true
-	var column_title = "LB,Zone A,Zone B,Zone C,Zone D,Zone E,Zone F,Zone G,Zone H,Zone I,Zone J,Zone K,Zone L,Zone M,Zone N"
-	var map_column_title = strings.Split(column_title, ",")
+	var map_column_title []string
 
 	read_file := csv.NewReader(file)
+	if read_file == nil {
+		return nil, errors.New("Can not read CSV file")
+	}
+
 	var intervals []Interval
-	var low, high, price float64
+	var low float64 = 0.00
+	var high float64 = 0.00
+	var price float64 = 0.00
 	var DeliveryData Delivery
 	var zone string
 
@@ -162,20 +239,21 @@ func CreateIntervalsFromCsvFile(path string) []Interval {
 
 		if skip_row_title == true {
 			skip_row_title = false
+			map_column_title = record
 			continue
 		}
 
-		for key, value := range record {
-			if key == 0 {
+		for idx, value := range record {
+			if idx == 0 {
 				high, err = strconv.ParseFloat(value, 64)
 				high = high + step
-				high = math.Floor(high*10000)/10000
+				high = math.Floor(high*10000) / 10000
 
 				low = high - distance
-				low = math.Floor(low*10000)/10000
+				low = math.Floor(low*10000) / 10000
 			} else {
 				price, err = strconv.ParseFloat(value, 64)
-				zone = map_column_title[key]
+				zone = map_column_title[idx]
 
 				DeliveryData = Delivery{
 					Zone:  zone,
@@ -193,5 +271,5 @@ func CreateIntervalsFromCsvFile(path string) []Interval {
 		}
 	}
 
-	return intervals
+	return intervals, nil
 }
