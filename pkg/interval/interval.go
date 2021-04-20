@@ -88,26 +88,10 @@ func (root *IntervalNode) PrintIntervalNode() {
 
 func BuildIntervalTree(intervals []Interval) (root *IntervalNode) {
 	intervals_len := len(intervals)
-	// balance_index := int(intervals_len / 2)
-	// tmp := ""
 
 	for i := 0; i < intervals_len; i++ {
-		// if i%2 == 0 {
-		// 	balance_index -= i
-		// } else {
-		// 	balance_index += i
-		// }
-
-		// if balance_index == intervals_len {
-		// 	balance_index = 0
-		// }
-
-		// tmp += strconv.Itoa(i) + ","
-
 		root = root.Insert(intervals[i])
 	}
-
-	// fmt.Println("tmp %v", tmp)
 
 	return root
 }
@@ -119,7 +103,7 @@ func (root *IntervalNode) DeliveryCalculator(weight float64, zone string) *Inter
 	root.OverlapSearch(&interval_search, &intervals_result)
 	
 	for _,value := range intervals_result {
-		fmt.Printf("\nOverlaps with low %v, high %v, DeliveryData %v", value.Low, value.High, value.DeliveryData)
+		// fmt.Printf("\nOverlaps with low %v, high %v, DeliveryData %v", value.Low, value.High, value.DeliveryData)
 
 		if value.DeliveryData.Zone == zone {
 			intervals_result_with_zone = append(intervals_result_with_zone, value)
