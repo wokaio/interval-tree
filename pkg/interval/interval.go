@@ -201,7 +201,7 @@ func (root *IntervalNode) DeliveryCalculator(weight interface{}) ([]Interval, er
 		return nil, errors.New("No overlapping interval")
 	}
 
-	if result_len > 0 {
+	if result_len > 1 {
 		sort.Sort(IntervalList(intervals_result_with_zone))
 	}
 
