@@ -71,7 +71,7 @@ func (root *IntervalNode) Insert(interval Interval) *IntervalNode {
 	}
 
 	root.max = math.Max(root.max, interval.High)
-	root.min = math.Min(root.max, interval.High)
+	root.min = math.Min(root.min, interval.High)
 
 	return root
 }
@@ -107,11 +107,19 @@ func (root *IntervalNode) PrintIntervalNode() {
 	root.right.PrintIntervalNode()
 }
 
-func BuildIntervalTree(intervals []Interval) (root *IntervalNode) {
+func BuildIntervalTree(intervals []Interval, min float64, max float64) (root *IntervalNode) {
 	intervals_len := len(intervals)
 
 	for i := 0; i < intervals_len; i++ {
 		root = root.Insert(intervals[i])
+	}
+
+	if min > 0 {
+		root.min = min
+	}
+
+	if max > 0 {
+		root.max = max
 	}
 
 	return root
@@ -192,6 +200,7 @@ func (root *IntervalNode) DeliveryCalculator(weight interface{}) ([]Interval, er
 		return nil, err
 	}
 
+	fmt.Println(fmt.Sprintf("\n%2f - %2f - %2f", weightf, root.min, root.max))
 	if (weightf < root.min) || (weightf > root.max) {
 		return nil, errors.New("Out of interval weight")
 	}
@@ -220,10 +229,10 @@ func StringToFloat64(numStr string) (float64, error) {
 	return strconv.ParseFloat(numStr, 64)
 }
 
-func CreateIntervalsFromCsvFile(path string, step float64, min float64, max float64) ([]Interval, error) {
+func CreateIntervalsFromCsvFile(path string, step float64, min float64, max float64) ([]Interval, float64, float64, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, min, max, err
 	}
 	defer file.Close()
 
@@ -233,7 +242,7 @@ func CreateIntervalsFromCsvFile(path string, step float64, min float64, max floa
 
 	read_file := csv.NewReader(file)
 	if read_file == nil {
-		return nil, errors.New("Can not read CSV file")
+		return nil, min, max, errors.New("Can not read CSV file")
 	}
 
 	var intervals []Interval
@@ -268,8 +277,14 @@ func CreateIntervalsFromCsvFile(path string, step float64, min float64, max floa
 		low = high - distance
 		low = math.Floor(low*10000) / 10000
 
-		if (min > 0) || (max > 0) {
-			if (high > max) || (low < min) {
+		if min > 0 {
+			if low < min {
+				continue
+			}
+		}
+
+		if max > 0 {
+			if high > max {
 				continue
 			}
 		}
@@ -293,5 +308,5 @@ func CreateIntervalsFromCsvFile(path string, step float64, min float64, max floa
 		}
 	}
 
-	return intervals, nil
+	return intervals, min, max, nil
 }

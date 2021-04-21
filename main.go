@@ -7,13 +7,14 @@ import (
 )
 
 func main() {
-	intervals, err := fdinterval.CreateIntervalsFromCsvFile("./data/dhl.csv", 0.0005)
+	intervals, min, max, err := fdinterval.CreateIntervalsFromCsvFile("./data/dhl.csv", 0.0005, -1, -1)
+	//intervals, min, max, err := fdinterval.CreateIntervalsFromCsvFile("./data/dhl.csv", 0.0005, 4.0, 150.0)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
-	tree := fdinterval.BuildIntervalTree(intervals)
+	tree := fdinterval.BuildIntervalTree(intervals, min, max)
 	// tree.PrintIntervalNode()
 
 	var countryIsoCode string = "us"
@@ -26,21 +27,21 @@ func main() {
 		return
 	}
 
-	result, err := treeItem.DeliveryCalculatorByZone(2.3, "Zone D")
+	fmt.Println("\nDeliveryCalculatorByZone")
+	result, err := treeItem.DeliveryCalculatorByZone(4.1, "Zone D")
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("\nDeliveryCalculatorByZone")
 	fmt.Printf("Low %v, high %v, data %v", result.Low, result.High, result.DeliveryData)
 
-	results, err := treeItem.DeliveryCalculator(2.3)
+	fmt.Println("\n\nDeliveryCalculator")
+	results, err := treeItem.DeliveryCalculator(4.3)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
-	fmt.Println("\n\nDeliveryCalculator")
 	for i := 0; i < len(results); i++ {
 		fmt.Printf("Low %v, high %v, data %v\n", results[i].Low, results[i].High, results[i].DeliveryData)
 	}
