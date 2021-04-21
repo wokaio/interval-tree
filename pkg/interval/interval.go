@@ -208,7 +208,11 @@ func (root *IntervalNode) DeliveryCalculator(weight interface{}) ([]Interval, er
 	return intervals_result_with_zone, nil
 }
 
-func CreateIntervalsFromCsvFile(path string, step float64) ([]Interval, error) {
+func StringToFloat64(numStr string) (float64, error) {
+	return strconv.ParseFloat(numStr, 64)
+}
+
+func CreateIntervalsFromCsvFile(path string, step float64, min float64, max float64) ([]Interval, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -237,37 +241,47 @@ func CreateIntervalsFromCsvFile(path string, step float64) ([]Interval, error) {
 			break
 		}
 
+		if len(record) == 0 {
+			continue
+		}
+
 		if skip_row_title == true {
 			skip_row_title = false
 			map_column_title = record
 			continue
 		}
 
-		for idx, value := range record {
-			if idx == 0 {
-				high, err = strconv.ParseFloat(value, 64)
-				high = high + step
-				high = math.Floor(high*10000) / 10000
+		high, err = StringToFloat64(record[0])
+		if err != nil {
+			continue
+		}
+		high = high + step
+		high = math.Floor(high*10000) / 10000
+		low = high - distance
+		low = math.Floor(low*10000) / 10000
 
-				low = high - distance
-				low = math.Floor(low*10000) / 10000
-			} else {
-				price, err = strconv.ParseFloat(value, 64)
-				zone = map_column_title[idx]
-
-				DeliveryData = Delivery{
-					Zone:  zone,
-					Price: price,
-				}
-
-				interval := Interval{
-					Low:          low,
-					High:         high,
-					DeliveryData: DeliveryData,
-				}
-
-				intervals = append(intervals, interval)
+		if (min > 0) || (max > 0) {
+			if (high > max) || (low < min) {
+				continue
 			}
+		}
+
+		for idx := 1; idx < len(record); idx++ {
+			price, err = StringToFloat64(record[idx])
+			zone = map_column_title[idx]
+
+			DeliveryData = Delivery{
+				Zone:  zone,
+				Price: price,
+			}
+
+			interval := Interval{
+				Low:          low,
+				High:         high,
+				DeliveryData: DeliveryData,
+			}
+
+			intervals = append(intervals, interval)
 		}
 	}
 
