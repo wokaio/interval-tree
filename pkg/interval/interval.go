@@ -45,6 +45,7 @@ type Delivery struct {
 type IntervalNode struct {
 	interval *Interval
 	max      float64
+	min      float64
 	left     *IntervalNode
 	right    *IntervalNode
 }
@@ -69,9 +70,8 @@ func (root *IntervalNode) Insert(interval Interval) *IntervalNode {
 		root.right = root.right.Insert(interval)
 	}
 
-	if root.max < interval.High {
-		root.max = interval.High
-	}
+	root.max = math.Max(root.max, interval.High)
+	root.min = math.Min(root.max, interval.High)
 
 	return root
 }
@@ -158,7 +158,7 @@ func (root *IntervalNode) DeliveryCalculatorByZone(weight interface{}, zone stri
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if weightf < 0 {
 		return nil, errors.New("Weight must be > 0")
 	}
@@ -191,9 +191,9 @@ func (root *IntervalNode) DeliveryCalculator(weight interface{}) ([]Interval, er
 	if err != nil {
 		return nil, err
 	}
-	
-	if weightf < 0 {
-		return nil, errors.New("Weight must be > 0")
+
+	if (weightf < root.min) || (weightf > root.max) {
+		return nil, errors.New("Out of interval weight")
 	}
 
 	interval_search := Interval{Low: weightf, High: weightf, DeliveryData: Delivery{}}
