@@ -158,6 +158,10 @@ func (root *IntervalNode) DeliveryCalculatorByZone(weight interface{}, zone stri
 	if err != nil {
 		return nil, err
 	}
+	
+	if weightf < 0 {
+		return nil, errors.New("Weight must be > 0")
+	}
 
 	interval_search := Interval{Low: weightf, High: weightf, DeliveryData: Delivery{}}
 	var intervals_result, intervals_result_with_zone []Interval
@@ -186,6 +190,10 @@ func (root *IntervalNode) DeliveryCalculator(weight interface{}) ([]Interval, er
 	weightf, err := ConvertI2Float(weight)
 	if err != nil {
 		return nil, err
+	}
+	
+	if weightf < 0 {
+		return nil, errors.New("Weight must be > 0")
 	}
 
 	interval_search := Interval{Low: weightf, High: weightf, DeliveryData: Delivery{}}
