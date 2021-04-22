@@ -103,7 +103,7 @@ func (root *IntervalNode) PrintIntervalNode() {
 	}
 
 	root.left.PrintIntervalNode()
-	fmt.Printf("\n{Low: %v, High: %v, DeliveryData: %v}, max: %v", root.interval.Low, root.interval.High, root.interval.DeliveryData, root.max)
+	fmt.Printf("\n{Low: %v, High: %v, DeliveryData: %v}, max: %v, min: %v", root.interval.Low, root.interval.High, root.interval.DeliveryData, root.max, root.min)
 	root.right.PrintIntervalNode()
 }
 
@@ -233,20 +233,20 @@ func CreateIntervalsFromCsvFile(path string, step float64, min float64, max floa
 	}
 	defer file.Close()
 
-	var distance = 1.0
-	var skip_row_title = true
-	var map_column_title []string
-
 	read_file := csv.NewReader(file)
 	if read_file == nil {
 		return nil, min, max, errors.New("Can not read CSV file")
 	}
 
+	var distance float64 = 0.00
+	var skip_row_title = true
+	var map_column_title []string
+
 	var intervals []Interval
 	var low float64 = 0.00
 	var high float64 = 0.00
-	var price float64 = 0.00
 	var DeliveryData Delivery
+	var price float64 = 0.00
 	var zone string
 
 	for {
@@ -265,14 +265,16 @@ func CreateIntervalsFromCsvFile(path string, step float64, min float64, max floa
 			continue
 		}
 
+		low = distance
+		low = math.Floor(low*10000) / 10000
+
 		high, err = StringToFloat64(record[0])
 		if err != nil {
 			continue
 		}
 		high = high + step
 		high = math.Floor(high*10000) / 10000
-		low = high - distance
-		low = math.Floor(low*10000) / 10000
+		distance = high
 
 		if min > 0 {
 			if low < min {
@@ -282,7 +284,7 @@ func CreateIntervalsFromCsvFile(path string, step float64, min float64, max floa
 
 		if max > 0 {
 			if high > max {
-				continue
+				break
 			}
 		}
 
