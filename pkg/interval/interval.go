@@ -310,3 +310,40 @@ func CreateIntervalsFromCsvFile(path string, step float64, min float64, max floa
 
 	return intervals, min, max, nil
 }
+
+func CreateMapCountryZoneFromCsvFile(path string) (map[string][]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var mapCountryZone = make(map[string][]string)
+	var skipRowTitle = true
+
+	read_file := csv.NewReader(file)
+	if read_file == nil {
+		return nil, errors.New("Can not read CSV file")
+	}
+
+	for {
+		record, err := read_file.Read()
+		if err == io.EOF {
+			break
+		}
+
+		if skipRowTitle == true {
+			skipRowTitle = false
+			continue
+		}
+
+		if len(record) == 0 {
+			continue
+		}
+
+		var key = record[2]
+		mapCountryZone[key] = append(mapCountryZone[key], record[0])
+	}
+
+	return mapCountryZone, nil
+}
