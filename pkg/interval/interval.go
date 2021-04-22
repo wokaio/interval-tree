@@ -172,26 +172,26 @@ func (root *IntervalNode) DeliveryCalculatorByZone(weight interface{}, zone stri
 	}
 
 	interval_search := Interval{Low: weightf, High: weightf, DeliveryData: Delivery{}}
-	var intervals_result, intervals_result_with_zone []Interval
+	var intervals_result, intervals_result_by_zone []Interval
 
 	root.OverlapSearch(&interval_search, &intervals_result)
 	for _, value := range intervals_result {
 		if value.DeliveryData.Zone == zone {
-			intervals_result_with_zone = append(intervals_result_with_zone, value)
+			intervals_result_by_zone = append(intervals_result_by_zone, value)
 		}
 	}
 
-	result_len := len(intervals_result_with_zone)
+	result_len := len(intervals_result_by_zone)
 	if result_len == 0 {
 		return nil, errors.New("No overlapping interval")
 	}
 
 	if result_len == 1 {
-		return &intervals_result_with_zone[0], nil
+		return &intervals_result_by_zone[0], nil
 	}
 
-	sort.Sort(IntervalList(intervals_result_with_zone))
-	return &intervals_result_with_zone[0], nil
+	sort.Sort(IntervalList(intervals_result_by_zone))
+	return &intervals_result_by_zone[0], nil
 }
 
 func (root *IntervalNode) DeliveryCalculator(weight interface{}) ([]Interval, error) {
@@ -206,23 +206,20 @@ func (root *IntervalNode) DeliveryCalculator(weight interface{}) ([]Interval, er
 	}
 
 	interval_search := Interval{Low: weightf, High: weightf, DeliveryData: Delivery{}}
-	var intervals_result, intervals_result_with_zone []Interval
+	var intervals_result []Interval
 
 	root.OverlapSearch(&interval_search, &intervals_result)
-	for _, value := range intervals_result {
-		intervals_result_with_zone = append(intervals_result_with_zone, value)
-	}
 
-	result_len := len(intervals_result_with_zone)
+	result_len := len(intervals_result)
 	if result_len == 0 {
 		return nil, errors.New("No overlapping interval")
 	}
 
 	if result_len > 1 {
-		sort.Sort(IntervalList(intervals_result_with_zone))
+		sort.Sort(IntervalList(intervals_result))
 	}
 
-	return intervals_result_with_zone, nil
+	return intervals_result, nil
 }
 
 func StringToFloat64(numStr string) (float64, error) {
@@ -309,41 +306,4 @@ func CreateIntervalsFromCsvFile(path string, step float64, min float64, max floa
 	}
 
 	return intervals, min, max, nil
-}
-
-func CreateMapCountryZoneFromCsvFile(path string) (map[string][]string, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var mapCountryZone = make(map[string][]string)
-	var skipRowTitle = true
-
-	read_file := csv.NewReader(file)
-	if read_file == nil {
-		return nil, errors.New("Can not read CSV file")
-	}
-
-	for {
-		record, err := read_file.Read()
-		if err == io.EOF {
-			break
-		}
-
-		if skipRowTitle == true {
-			skipRowTitle = false
-			continue
-		}
-
-		if len(record) == 0 {
-			continue
-		}
-
-		var key = record[2]
-		mapCountryZone[key] = append(mapCountryZone[key], record[0])
-	}
-
-	return mapCountryZone, nil
 }
